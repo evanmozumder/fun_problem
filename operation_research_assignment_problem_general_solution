@@ -1,0 +1,102 @@
+clc; 
+clear all; 
+% A=[20,28,19,13;15,30,31,28;40,21,20,17;21,28,26,12]; 
+% A = [10, 12, 15, 12, 8; 7, 16, 14, 14, 11; 13, 14, 7, 9, 9; 12, 10, 11, 13, 10; 8, 13, 15, 11, 15];
+A = [10, 5, 13, 15, 16; 3, 9, 18, 13, 6; 10, 7, 2, 2, 2; 7, 11, 9, 7, 12; 7, 9, 10, 4, 12];
+disp('cost matrix'); 
+disp(A); 
+b=A; 
+mc = zeros(size(A, 1), 1);
+% row minimun & row reduction
+for i=1:size(A,1) 
+    sub=min(A(i,:)); 
+    A(i,:) = A(i,:)-sub; 
+end 
+
+% column minimun & column reduction
+for i=1:size(A,2) 
+    sub=min(A(:,i)); 
+    A(:,i) = A(:,i)-sub; 
+end 
+
+A
+line = 0;
+tempA = A;
+while line ~= size(A, 1)
+    temp = A;
+    % row scanning
+    line = 0;
+    [temp, line, mc] = scanning(temp, line, mc);
+    disp("after scanning")
+    disp(temp)
+    minimum = 0;
+    minimum = min(temp(:));
+    if minimum == 0
+       [temp, line, mc] = scanning(temp, line, mc);
+    end
+    if line ~= size(A, 1)
+        %     temp = temp - minimum;
+        % all(temp(1, :)) == inf && 
+        % if all(temp(:, 3)==inf)
+        %     disp(5)
+        % end
+        B = zeros(size(A, 1));
+        for i=1:size(A, 1)
+            for j=1:size(A, 2)
+                if all(temp(i, :)==inf) & all(temp(:, j)==inf)
+                    B(i, j) = B(i, j) + minimum;
+                end
+                if temp(i, j) ~= inf
+                    B(i, j) = B(i, j) - minimum;
+                end
+            end
+        end
+        A = A + B;
+    else
+        break;
+    end
+end
+disp('modified cost')
+disp(A)
+
+cost = 0;
+for i=1:size(A, 1)
+    fprintf("Job %d is assigned to operator %d\n", i, mc(i));
+    cost = cost + b(i, mc(i));
+end
+fprintf("\n\nTotal cost = %d\n", cost)
+
+    
+    
+function [temp, line, mc] = scanning(temp, line, mc)
+    for i = 1:size(temp, 1)
+        count = size(find(temp(i, :)==0), 2);
+        if count == 1
+            for j = 1:size(temp, 2)
+                if temp(i, j) == 0
+                    break;
+                end
+            end
+            temp(:, j) = inf;
+            line = line + 1;
+            mc(i, 1) = j;
+        end
+    end
+%     temp
+    % column scanning
+    for j=1:size(temp, 2)
+        count = size(find(temp(:, j)==0), 1);
+        if count == 1
+            for i=1:size(temp, 1)
+                if temp(i, j) == 0
+                    break;
+                end
+            end
+            temp(i, :) = inf;
+            line = line + 1;
+            mc(i, 1) = j;
+        end
+    end
+end
+    
+    
